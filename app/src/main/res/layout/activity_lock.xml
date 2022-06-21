@@ -22,7 +22,7 @@
         android:layout_weight="1"
         android:textSize="30sp"
         android:id="@+id/et_pwd2"
-        android:inputType="number"
+        android:inputType="numberPassword"
         android:maxLength="1"
         android:gravity="center"/>
 
@@ -32,7 +32,7 @@
         android:layout_weight="1"
         android:textSize="30sp"
         android:id="@+id/et_pwd3"
-        android:inputType="number"
+        android:inputType="numberPassword"
         android:maxLength="1"
         android:gravity="center"/>
 
@@ -42,7 +42,7 @@
         android:layout_weight="1"
         android:textSize="30sp"
         android:id="@+id/et_pwd4"
-        android:inputType="number"
+        android:inputType="numberPassword"
         android:maxLength="1"
         android:gravity="center"/>
 </LinearLayout>
