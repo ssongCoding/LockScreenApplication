@@ -4,7 +4,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -17,11 +19,13 @@ public class MainActivity extends AppCompatActivity{
 
     Button btn_lock;
 
-    boolean isLocked = false;
+    /*** 앱을 빠져나가면, 앱을 잠금하려고 쓰는 변수 ***/
+    boolean shouldLock = false;
 
-    /**
-     * 생명주기
-     */
+    /*** SharedPreferences에 접근할 때 쓸 Class ***/
+    private AppLock appLock;
+
+    // Activity 띄울 때
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,9 +36,12 @@ public class MainActivity extends AppCompatActivity{
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, LockActivity.class);
-                startActivityForResult(intent, 1);
+                intent.putExtra(INTENT_TYPE.TYPE, INTENT_TYPE.SET_LOCK);
+                startActivityForResult(intent, INTENT_TYPE.SET_LOCK);   // 잠금 설정 활성화
             }
         });
+
+        appLock = new AppLock(this);
     }
 
     // Activity 뜨고, 가장 먼저 실행되는 메소드
@@ -42,9 +49,11 @@ public class MainActivity extends AppCompatActivity{
     protected void onStart() {
         super.onStart();
 
-        if(isLocked){ // 잠금 설정이 되어 있으면,
+        if(shouldLock&&appLock.isLocked()){ // 앱이 밖에 나갔다가 들어올 때
+                                            // 잠금설정이 되어있으면,
             Intent intent = new Intent(MainActivity.this, LockActivity.class);
-            startActivityForResult(intent, 1);
+            intent.putExtra(INTENT_TYPE.TYPE, INTENT_TYPE.UNLOCK);
+            startActivityForResult(intent, INTENT_TYPE.UNLOCK);         // 잠금 해제
         }
     }
 
@@ -53,11 +62,6 @@ public class MainActivity extends AppCompatActivity{
     @Override
     protected void onResume() {
         super.onResume();
-
-        if(isLocked){ // 잠금 설정이 되어 있으면,
-            Intent intent = new Intent(MainActivity.this, LockActivity.class);
-            startActivityForResult(intent, 1);
-        }
     }
 
     @Override
@@ -68,6 +72,8 @@ public class MainActivity extends AppCompatActivity{
     @Override
     protected void onStop() {
         super.onStop();
+
+        shouldLock = true;
     }
 
     @Override
@@ -80,19 +86,19 @@ public class MainActivity extends AppCompatActivity{
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        Toast.makeText(getApplicationContext(), "WHHHHHHY", Toast.LENGTH_SHORT).show();
-//        Toast.makeText(getApplicationContext(), requestCode,
-//                Toast.LENGTH_SHORT).show();
-//
-//        Toast.makeText(getApplicationContext(), resultCode,
-//                Toast.LENGTH_SHORT).show();
-//
-        switch (requestCode) { // 내가 정해서 보낸 requestCode
-            case 1:
-                Toast.makeText(getApplicationContext(), "Hi",
-                        Toast.LENGTH_SHORT).show();
-                if (resultCode == Activity.RESULT_OK) {
-                    isLocked = true;
+        switch (requestCode) {                   // 내가 정해서 보낸 requestCode (어떤 Activity에서 결과를 보내왔는가)
+            case INTENT_TYPE.SET_LOCK:                       // 잠금 설정을 하고 온 거면,
+                if (resultCode == RESULT_OK) {
+                    Toast.makeText(this, "잠금 설정을 하셨습니다.", Toast.LENGTH_SHORT).show();
+                    shouldLock = false;         // 어플을 사용 중이기 때문에, 잠글 필요 X
+                    break;
+                }
+            case INTENT_TYPE.SET_UNLOCK:
+                break;
+            case INTENT_TYPE.UNLOCK:
+                if (resultCode == RESULT_OK) {
+                    Toast.makeText(this, "Welcome!", Toast.LENGTH_SHORT).show();
+                    shouldLock = false;         // 어플을 사용 중이기 때문에, 잠글 필요 X
                     break;
                 }
         }
